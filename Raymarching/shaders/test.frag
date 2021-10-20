@@ -5,7 +5,7 @@ uniform float time;
 uniform vec2 resolution;
 out vec4 color;
 in vec2 point_position;
-#define MAX_STEPS 20
+#define MAX_STEPS 50
 #define MAX_DIST 100.
 #define ACCURACY 0.01
 
@@ -38,7 +38,7 @@ float ray_march(vec3 ro, vec3 rd)
 vec3 GetNormal(vec3 p)
 {
     float d = GetDist(p);
-    vec2 e = vec2(0.001, 0);
+    vec2 e = vec2(0.01, 0);
 
     vec3 n = vec3(d) - vec3(
         GetDist(p-e.xyy),
@@ -54,7 +54,11 @@ float GetLight(vec3 p)
     vec3 l = normalize(lightPos - p);
     vec3 n = GetNormal(p);
     
-    return dot(n, l);
+    float d = ray_march(p+n*0.1, l);
+    float diff = clamp(dot(n, l), 0., 1.0);
+    if(d<length(lightPos-p))
+        diff *=0.1;
+    return diff;
 }
 void main()
 {
