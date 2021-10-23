@@ -9,15 +9,45 @@ in vec2 point_position;
 #define MAX_DIST 100.
 #define ACCURACY 0.01
 
-float GetDist(vec3 p)
+
+float plane(vec3 p)
+{
+return p.y;
+}
+float spehere(vec3 p)
 {
     vec4 sd = vec4(0, 1, 6, 1);
-
-    float sdist = length(p-sd.xyz)-sd.w;
-    float planedist = p.y;
-
-    return min(sdist, planedist);
+    return length(p-sd.xyz)-sd.w;
 }
+
+float Capsule(vec3 p, vec3 a, vec3 b, float r)
+{
+    vec3 ab = b-a;
+    vec3 ap = p -a;
+
+    float t = dot(ab, ap)/dot(ab, ab);
+    t = clamp(t, 0, 1);
+    vec3 c = a + t*ab;
+      return length(p-c) -r ;
+}
+float Torus(vec3 p, vec2 r)
+{
+    
+    vec3 pos = vec3(0, 0.5, 6);
+    p-=pos;
+    float x = length(p.xz)-r.x;
+    return length(vec2(x, p.y)) - r.y;
+
+}
+float GetDist(vec3 p)
+{
+    
+    float capsule = Capsule(p, vec3(0, 2, 6), vec3(1, 3, 6), .3);
+    float sphere = spehere(p);
+    float torus = Torus(p, vec2(1, 0.2));
+    return min(capsule,min( plane(p), torus));
+}
+
 
 float ray_march(vec3 ro, vec3 rd)
 {
@@ -74,6 +104,6 @@ void main()
     
     float diffuse = GetLight(p);
     
-    color = vec4(vec3(diffuse), 1);
+    color = vec4(vec3(1,1, 1)*diffuse, 1);
       
 }
